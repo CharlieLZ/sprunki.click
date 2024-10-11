@@ -25,7 +25,7 @@ Um eine lokale Kopie zum Laufen zu bringen, folgen Sie diesen einfachen Schritte
 
 1. Klonen Sie das Repository:
    ```
-   git clone https://github.com/qiayue/SprunkiIncredibox.git
+   git clone https://github.com/CharlieLZ/sprunki.click/
    ```
 2. Navigieren Sie zum Projektverzeichnis:
    ```

@@ -1,220 +1,220 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中央定位的语音控制Flappy Bird</title>
+    <title>Flappy Bird centrado controlado por voz</title>
     <style>
         body { margin: 0; overflow: hidden; }
-        #container { position: relative; width: 100vw; height: 100vh; }
-        #webcamVideo { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-        #gameCanvas { position: absolute; top: 0; left: 0; z-index: 2; }
-        #mergedCanvas { display: none; }
-        #uiLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; }
-        #startButton { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4; pointer-events: auto; }
-        #debugInfo { position: absolute; bottom: 10px; left: 10px; color: white; font-family: Arial, sans-serif; z-index: 5; }
+        #contenedor { position: relative; width: 100vw; height: 100vh; }
+        #videoWebcam { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+        #lienzojuego { position: absolute; top: 0; left: 0; z-index: 2; }
+        #lienzoFusionado { display: none; }
+        #capainterfaz { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; }
+        #botonInicio { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4; pointer-events: auto; }
+        #infoDepuracion { position: absolute; bottom: 10px; left: 10px; color: white; font-family: Arial, sans-serif; z-index: 5; }
     </style>
 </head>
 <body>
-    <div id="container">
-        <video id="webcamVideo" autoplay muted></video>
-        <div id="gameCanvas"></div>
-        <canvas id="mergedCanvas"></canvas>
-        <div id="uiLayer">
-            <button id="startButton">开始游戏</button>
+    <div id="contenedor">
+        <video id="videoWebcam" autoplay muted></video>
+        <div id="lienzojuego"></div>
+        <canvas id="lienzoFusionado"></canvas>
+        <div id="capainterfaz">
+            <button id="botonInicio">Iniciar Juego</button>
         </div>
-        <div id="debugInfo"></div>
+        <div id="infoDepuracion"></div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
 
     <script>
-        let bird;
-        let pipes = [];
-        let score = 0;
-        let gameOver = false;
-        let gameStarted = false;
-        let mic;
-        let recorder;
-        let chunks = [];
-        let debugElement;
-        let mergedCanvas;
-        let mergedCtx;
+        let pajaro;
+        let tubos = [];
+        let puntuacion = 0;
+        let juegoTerminado = false;
+        let juegoIniciado = false;
+        let microfono;
+        let grabador;
+        let fragmentos = [];
+        let elementoDepuracion;
+        let lienzoFusionado;
+        let contextoFusionado;
 
-        const VOLUME_THRESHOLD = 0.01;
-        const FIXED_LIFT = -3;
-        const PIPE_SPAWN_INTERVAL = 250;
-        const MIN_PIPE_SPACING = 250;
-        const MAX_PIPE_SPACING = 350;
-        const COOLDOWN_TIME = 50;
-        const MAX_FALL_SPEED = 3;
+        const UMBRAL_VOLUMEN = 0.01;
+        const ELEVACION_FIJA = -3;
+        const INTERVALO_GENERACION_TUBOS = 250;
+        const ESPACIO_MIN_TUBOS = 250;
+        const ESPACIO_MAX_TUBOS = 350;
+        const TIEMPO_ENFRIAMIENTO = 50;
+        const VELOCIDAD_CAIDA_MAXIMA = 3;
 
-        let lastFlapTime = 0;
+        let tiempoUltimoAleteo = 0;
 
         function setup() {
-            let canvas = createCanvas(windowWidth, windowHeight);
-            canvas.parent('gameCanvas');
-            bird = new Bird();
+            let lienzo = createCanvas(windowWidth, windowHeight);
+            lienzo.parent('lienzojuego');
+            pajaro = new Pajaro();
             
-            debugElement = document.getElementById('debugInfo');
+            elementoDepuracion = document.getElementById('infoDepuracion');
 
-            mergedCanvas = document.getElementById('mergedCanvas');
-            mergedCanvas.width = windowWidth;
-            mergedCanvas.height = windowHeight;
-            mergedCtx = mergedCanvas.getContext('2d');
+            lienzoFusionado = document.getElementById('lienzoFusionado');
+            lienzoFusionado.width = windowWidth;
+            lienzoFusionado.height = windowHeight;
+            contextoFusionado = lienzoFusionado.getContext('2d');
 
-            mic = new p5.AudioIn();
-            mic.start(function() {
-                console.log('麦克风已启动');
-                updateDebugInfo('麦克风已启动');
+            microfono = new p5.AudioIn();
+            microfono.start(function() {
+                console.log('Micrófono iniciado');
+                actualizarInfoDepuracion('Micrófono iniciado');
             }, function(err) {
-                console.error('麦克风启动失败:', err);
-                updateDebugInfo('麦克风启动失败: ' + err);
+                console.error('Error al iniciar el micrófono:', err);
+                actualizarInfoDepuracion('Error al iniciar el micrófono: ' + err);
             });
 
             navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                .then(stream => {
-                    let videoElement = document.getElementById('webcamVideo');
-                    videoElement.srcObject = stream;
-                    videoElement.onloadedmetadata = () => {
-                        videoElement.play();
+                .then(flujo => {
+                    let elementoVideo = document.getElementById('videoWebcam');
+                    elementoVideo.srcObject = flujo;
+                    elementoVideo.onloadedmetadata = () => {
+                        elementoVideo.play();
                     };
 
-                    let mergedStream = mergedCanvas.captureStream(30);
-                    let audioTrack = stream.getAudioTracks()[0];
-                    mergedStream.addTrack(audioTrack);
+                    let flujoFusionado = lienzoFusionado.captureStream(30);
+                    let pistaAudio = flujo.getAudioTracks()[0];
+                    flujoFusionado.addTrack(pistaAudio);
                     
-                    recorder = new MediaRecorder(mergedStream);
-                    recorder.ondataavailable = e => chunks.push(e.data);
-                    recorder.onstop = saveVideo;
+                    grabador = new MediaRecorder(flujoFusionado);
+                    grabador.ondataavailable = e => fragmentos.push(e.data);
+                    grabador.onstop = guardarVideo;
 
-                    console.log('摄像头和麦克风权限已获得');
-                    updateDebugInfo('摄像头和麦克风权限已获得');
+                    console.log('Permisos de cámara y micrófono obtenidos');
+                    actualizarInfoDepuracion('Permisos de cámara y micrófono obtenidos');
                 })
                 .catch(err => {
-                    console.error("无法访问摄像头或麦克风:", err);
-                    updateDebugInfo("无法访问摄像头或麦克风: " + err);
+                    console.error("No se puede acceder a la cámara o al micrófono:", err);
+                    actualizarInfoDepuracion("No se puede acceder a la cámara o al micrófono: " + err);
                 });
 
-            document.getElementById('startButton').addEventListener('click', startGame);
+            document.getElementById('botonInicio').addEventListener('click', iniciarJuego);
         }
 
         function draw() {
             clear();
 
-            if (gameStarted && !gameOver) {
-                let vol = mic.getLevel();
-                let currentTime = millis();
-                let cooldownRemaining = Math.max(0, COOLDOWN_TIME - (currentTime - lastFlapTime));
+            if (juegoIniciado && !juegoTerminado) {
+                let volumen = microfono.getLevel();
+                let tiempoActual = millis();
+                let enfriamientoRestante = Math.max(0, TIEMPO_ENFRIAMIENTO - (tiempoActual - tiempoUltimoAleteo));
 
-                updateDebugInfo('音量: ' + vol.toFixed(4) + ', 阈值: ' + VOLUME_THRESHOLD + ', 冷却: ' + cooldownRemaining.toFixed(0) + 'ms');
+                actualizarInfoDepuracion('Volumen: ' + volumen.toFixed(4) + ', Umbral: ' + UMBRAL_VOLUMEN + ', Enfriamiento: ' + enfriamientoRestante.toFixed(0) + 'ms');
 
-                if (vol > VOLUME_THRESHOLD && currentTime - lastFlapTime > COOLDOWN_TIME) {
-                    bird.flap();
-                    lastFlapTime = currentTime;
-                    updateDebugInfo('音量: ' + vol.toFixed(4) + ', 上升力: ' + FIXED_LIFT);
+                if (volumen > UMBRAL_VOLUMEN && tiempoActual - tiempoUltimoAleteo > TIEMPO_ENFRIAMIENTO) {
+                    pajaro.aletear();
+                    tiempoUltimoAleteo = tiempoActual;
+                    actualizarInfoDepuracion('Volumen: ' + volumen.toFixed(4) + ', Elevación: ' + ELEVACION_FIJA);
                 }
 
-                bird.update();
-                bird.show();
+                pajaro.actualizar();
+                pajaro.mostrar();
 
-                if (frameCount % PIPE_SPAWN_INTERVAL == 0) {
-                    pipes.push(new Pipe());
+                if (frameCount % INTERVALO_GENERACION_TUBOS == 0) {
+                    tubos.push(new Tubo());
                 }
 
-                for (let i = pipes.length - 1; i >= 0; i--) {
-                    pipes[i].show();
-                    pipes[i].update();
+                for (let i = tubos.length - 1; i >= 0; i--) {
+                    tubos[i].mostrar();
+                    tubos[i].actualizar();
 
-                    if (pipes[i].hits(bird)) {
-                        gameOver = true;
+                    if (tubos[i].golpea(pajaro)) {
+                        juegoTerminado = true;
                     }
 
-                    if (pipes[i].offscreen()) {
-                        pipes.splice(i, 1);
-                        score++;
+                    if (tubos[i].fueraDePantalla()) {
+                        tubos.splice(i, 1);
+                        puntuacion++;
                     }
                 }
 
                 textAlign(LEFT);
                 textSize(32);
                 fill(255);
-                text('分数: ' + score, 10, 40);
-            } else if (gameOver) {
+                text('Puntuación: ' + puntuacion, 10, 40);
+            } else if (juegoTerminado) {
                 textAlign(CENTER);
                 textSize(32);
                 fill(255);
-                text('游戏结束!点击重新开始', width/2, height/2);
+                text('¡Juego terminado! Haz clic para reiniciar', width/2, height/2);
                 noLoop();
-                recorder.stop();
+                grabador.stop();
             } else {
                 textAlign(CENTER);
                 textSize(32);
                 fill(255);
-                text('准备开始', width/2, height/2 - 50);
+                text('Listo para comenzar', width/2, height/2 - 50);
             }
 
-            mergeFrames();
+            fusionarFotogramas();
         }
 
-        function Bird() {
-            this.y = height / 2;  // 初始垂直位置在屏幕中间
-            this.x = width / 2;   // 水平位置在屏幕中间
-            this.gravity = 0.1;
-            this.velocity = 0;
+        function Pajaro() {
+            this.y = height / 2;  // Posición vertical inicial en el centro de la pantalla
+            this.x = width / 2;   // Posición horizontal en el centro de la pantalla
+            this.gravedad = 0.1;
+            this.velocidad = 0;
 
-            this.show = function() {
+            this.mostrar = function() {
                 fill(255, 255, 0);
                 ellipse(this.x, this.y, 32, 32);
             }
 
-            this.update = function() {
-                this.velocity += this.gravity;
-                this.velocity = constrain(this.velocity, -MAX_FALL_SPEED, MAX_FALL_SPEED);
-                this.y += this.velocity;
+            this.actualizar = function() {
+                this.velocidad += this.gravedad;
+                this.velocidad = constrain(this.velocidad, -VELOCIDAD_CAIDA_MAXIMA, VELOCIDAD_CAIDA_MAXIMA);
+                this.y += this.velocidad;
 
                 if (this.y > height - 16) {
                     this.y = height - 16;
-                    this.velocity = 0;
+                    this.velocidad = 0;
                 }
 
                 if (this.y < 16) {
                     this.y = 16;
-                    this.velocity = 0;
+                    this.velocidad = 0;
                 }
             }
 
-            this.flap = function() {
-                this.velocity += FIXED_LIFT;
+            this.aletear = function() {
+                this.velocidad += ELEVACION_FIJA;
             }
         }
 
-        function Pipe() {
-            this.spacing = random(MIN_PIPE_SPACING, MAX_PIPE_SPACING);
-            this.top = random(height * 0.1, height * 0.6);
-            this.bottom = height - (this.top + this.spacing);
+        function Tubo() {
+            this.espaciado = random(ESPACIO_MIN_TUBOS, ESPACIO_MAX_TUBOS);
+            this.superior = random(height * 0.1, height * 0.6);
+            this.inferior = height - (this.superior + this.espaciado);
             this.x = width;
-            this.w = 80;
-            this.speed = 1.5;
+            this.ancho = 80;
+            this.velocidad = 1.5;
 
-            this.show = function() {
+            this.mostrar = function() {
                 fill(0, 255, 0);
-                rect(this.x, 0, this.w, this.top);
-                rect(this.x, height - this.bottom, this.w, this.bottom);
+                rect(this.x, 0, this.ancho, this.superior);
+                rect(this.x, height - this.inferior, this.ancho, this.inferior);
             }
 
-            this.update = function() {
-                this.x -= this.speed;
+            this.actualizar = function() {
+                this.x -= this.velocidad;
             }
 
-            this.offscreen = function() {
-                return (this.x < -this.w);
+            this.fueraDePantalla = function() {
+                return (this.x < -this.ancho);
             }
 
-            this.hits = function(bird) {
-                if (bird.y < this.top || bird.y > height - this.bottom) {
-                    if (bird.x > this.x && bird.x < this.x + this.w) {
+            this.golpea = function(pajaro) {
+                if (pajaro.y < this.superior || pajaro.y > height - this.inferior) {
+                    if (pajaro.x > this.x && pajaro.x < this.x + this.ancho) {
                         return true;
                     }
                 }
@@ -222,60 +222,60 @@
             }
         }
 
-        function mergeFrames() {
-            mergedCtx.drawImage(document.getElementById('webcamVideo'), 0, 0, mergedCanvas.width, mergedCanvas.height);
-            mergedCtx.drawImage(document.getElementById('defaultCanvas0'), 0, 0);
+        function fusionarFotogramas() {
+            contextoFusionado.drawImage(document.getElementById('videoWebcam'), 0, 0, lienzoFusionado.width, lienzoFusionado.height);
+            contextoFusionado.drawImage(document.getElementById('defaultCanvas0'), 0, 0);
         }
 
-        function startGame() {
-            gameStarted = true;
-            document.getElementById('startButton').style.display = 'none';
-            pipes = [];
-            score = 0;
-            bird = new Bird();
-            lastFlapTime = 0;
-            recorder.start();
+        function iniciarJuego() {
+            juegoIniciado = true;
+            document.getElementById('botonInicio').style.display = 'none';
+            tubos = [];
+            puntuacion = 0;
+            pajaro = new Pajaro();
+            tiempoUltimoAleteo = 0;
+            grabador.start();
             getAudioContext().resume().then(() => {
-                console.log('音频上下文已恢复');
-                updateDebugInfo('音频上下文已恢复');
+                console.log('Contexto de audio reanudado');
+                actualizarInfoDepuracion('Contexto de audio reanudado');
             });
             loop();
         }
 
-        function updateDebugInfo(info) {
-            debugElement.textContent = info;
+        function actualizarInfoDepuracion(info) {
+            elementoDepuracion.textContent = info;
         }
 
         function mousePressed() {
-            if (gameOver) {
-                gameOver = false;
-                gameStarted = false;
-                bird = new Bird();
-                pipes = [];
-                score = 0;
-                lastFlapTime = 0;
-                document.getElementById('startButton').style.display = 'block';
+            if (juegoTerminado) {
+                juegoTerminado = false;
+                juegoIniciado = false;
+                pajaro = new Pajaro();
+                tubos = [];
+                puntuacion = 0;
+                tiempoUltimoAleteo = 0;
+                document.getElementById('botonInicio').style.display = 'block';
                 loop();
-                chunks = [];
+                fragmentos = [];
             }
         }
 
-        function saveVideo() {
-            const blob = new Blob(chunks, { type: 'video/webm' });
+        function guardarVideo() {
+            const blob = new Blob(fragmentos, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             document.body.appendChild(a);
             a.style = 'display: none';
             a.href = url;
-            a.download = 'game-recording.webm';
+            a.download = 'grabacion-juego.webm';
             a.click();
             window.URL.revokeObjectURL(url);
         }
 
         function windowResized() {
             resizeCanvas(windowWidth, windowHeight);
-            mergedCanvas.width = windowWidth;
-            mergedCanvas.height = windowHeight;
+            lienzoFusionado.width = windowWidth;
+            lienzoFusionado.height = windowHeight;
         }
     </script>
 </body>

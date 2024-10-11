@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="es-ES">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>优化后的语音控制Flappy Bird</title>
+    <title>Flappy Bird con control de voz optimizado</title>
     <style>
         body { margin: 0; overflow: hidden; }
         #container { position: relative; width: 100vw; height: 100vh; }
@@ -21,7 +21,7 @@
         <canvas id="gameCanvas"></canvas>
         <canvas id="mergedCanvas"></canvas>
         <div id="uiLayer">
-            <button id="startButton">开始游戏</button>
+            <button id="startButton">Iniciar juego</button>
         </div>
         <div id="debugInfo"></div>
     </div>
@@ -30,277 +30,277 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
 
     <script>
-        let bird;
-        let pipes = [];
-        let score = 0;
-        let gameOver = false;
-        let gameStarted = false;
-        let mic;
-        let recorder;
-        let chunks = [];
-        let debugElement;
-        let mergedCanvas;
-        let mergedCtx;
-        let gameCanvas;
-        let gameCtx;
-        let videoAspectRatio;
+        let pajaro;
+        let tuberias = [];
+        let puntuacion = 0;
+        let finJuego = false;
+        let juegoIniciado = false;
+        let microfono;
+        let grabador;
+        let fragmentos = [];
+        let elementoDepuracion;
+        let canvasCombinado;
+        let contextoCombiando;
+        let canvasJuego;
+        let contextoJuego;
+        let relacionAspectoVideo;
 
-        const VOLUME_THRESHOLD = 0.0001;
-        const FIXED_LIFT = -3;
-        const PIPE_SPAWN_INTERVAL = 250;
-        const MIN_PIPE_SPACING = 250;
-        const MAX_PIPE_SPACING = 350;
-        const COOLDOWN_TIME = 50;
-        const MAX_FALL_SPEED = 3;
+        const UMBRAL_VOLUMEN = 0.0001;
+        const ELEVACION_FIJA = -3;
+        const INTERVALO_GENERACION_TUBERIA = 250;
+        const ESPACIO_MIN_TUBERIA = 250;
+        const ESPACIO_MAX_TUBERIA = 350;
+        const TIEMPO_ENFRIAMIENTO = 50;
+        const VELOCIDAD_CAIDA_MAXIMA = 3;
 
-        let lastFlapTime = 0;
+        let tiempoUltimoAleteo = 0;
 
         function setup() {
-            gameCanvas = document.getElementById('gameCanvas');
-            gameCtx = gameCanvas.getContext('2d');
+            canvasJuego = document.getElementById('gameCanvas');
+            contextoJuego = canvasJuego.getContext('2d');
             
-            debugElement = document.getElementById('debugInfo');
+            elementoDepuracion = document.getElementById('debugInfo');
 
-            mergedCanvas = document.getElementById('mergedCanvas');
-            mergedCtx = mergedCanvas.getContext('2d');
+            canvasCombinado = document.getElementById('mergedCanvas');
+            contextoCombiando = canvasCombinado.getContext('2d');
 
-            mic = new p5.AudioIn();
-            mic.start(function() {
-                console.log('麦克风已启动');
-                updateDebugInfo('麦克风已启动');
+            microfono = new p5.AudioIn();
+            microfono.start(function() {
+                console.log('Micrófono iniciado');
+                actualizarInfoDepuracion('Micrófono iniciado');
             }, function(err) {
-                console.error('麦克风启动失败:', err);
-                updateDebugInfo('麦克风启动失败: ' + err);
+                console.error('Error al iniciar el micrófono:', err);
+                actualizarInfoDepuracion('Error al iniciar el micrófono: ' + err);
             });
 
-            const constraints = {
+            const restricciones = {
                 video: { facingMode: { ideal: "user" } },
                 audio: true
             };
 
-            navigator.mediaDevices.getUserMedia(constraints)
-                .then(stream => {
-                    let videoElement = document.getElementById('webcamVideo');
-                    videoElement.srcObject = stream;
-                    videoElement.onloadedmetadata = () => {
-                        videoElement.play();
-                        videoAspectRatio = videoElement.videoWidth / videoElement.videoHeight;
-                        resizeCanvases();
+            navigator.mediaDevices.getUserMedia(restricciones)
+                .then(flujo => {
+                    let elementoVideo = document.getElementById('webcamVideo');
+                    elementoVideo.srcObject = flujo;
+                    elementoVideo.onloadedmetadata = () => {
+                        elementoVideo.play();
+                        relacionAspectoVideo = elementoVideo.videoWidth / elementoVideo.videoHeight;
+                        redimensionarCanvases();
 
-                        let mergedStream = mergedCanvas.captureStream(30);
-                        let audioTrack = stream.getAudioTracks()[0];
-                        mergedStream.addTrack(audioTrack);
+                        let flujoCombinado = canvasCombinado.captureStream(30);
+                        let pistaAudio = flujo.getAudioTracks()[0];
+                        flujoCombinado.addTrack(pistaAudio);
                         
-                        recorder = new MediaRecorder(mergedStream, { mimeType: 'video/webm; codecs=vp9' });
-                        recorder.ondataavailable = e => chunks.push(e.data);
-                        recorder.onstop = saveVideo;
+                        grabador = new MediaRecorder(flujoCombinado, { mimeType: 'video/webm; codecs=vp9' });
+                        grabador.ondataavailable = e => fragmentos.push(e.data);
+                        grabador.onstop = guardarVideo;
                     };
 
-                    console.log('摄像头和麦克风权限已获得');
-                    updateDebugInfo('摄像头和麦克风权限已获得');
+                    console.log('Permiso de cámara y micrófono concedido');
+                    actualizarInfoDepuracion('Permiso de cámara y micrófono concedido');
                 })
                 .catch(err => {
-                    console.error("无法访问摄像头或麦克风:", err);
-                    updateDebugInfo("无法访问摄像头或麦克风: " + err);
+                    console.error("No se puede acceder a la cámara o al micrófono:", err);
+                    actualizarInfoDepuracion("No se puede acceder a la cámara o al micrófono: " + err);
                 });
 
-            document.getElementById('startButton').addEventListener('click', startGame);
+            document.getElementById('startButton').addEventListener('click', iniciarJuego);
             
-            noCanvas(); // 移除 p5.js 创建的默认画布
+            noCanvas();
         }
 
-        function resizeCanvases() {
-            let containerWidth = windowWidth;
-            let containerHeight = windowHeight;
-            let canvasWidth, canvasHeight;
+        function redimensionarCanvases() {
+            let anchoContenedor = windowWidth;
+            let altoContenedor = windowHeight;
+            let anchoCanvas, altoCanvas;
 
-            if (containerWidth / containerHeight > videoAspectRatio) {
-                canvasWidth = containerHeight * videoAspectRatio;
-                canvasHeight = containerHeight;
+            if (anchoContenedor / altoContenedor > relacionAspectoVideo) {
+                anchoCanvas = altoContenedor * relacionAspectoVideo;
+                altoCanvas = altoContenedor;
             } else {
-                canvasWidth = containerWidth;
-                canvasHeight = containerWidth / videoAspectRatio;
+                anchoCanvas = anchoContenedor;
+                altoCanvas = anchoContenedor / relacionAspectoVideo;
             }
 
-            gameCanvas.width = canvasWidth;
-            gameCanvas.height = canvasHeight;
-            mergedCanvas.width = canvasWidth;
-            mergedCanvas.height = canvasHeight;
+            canvasJuego.width = anchoCanvas;
+            canvasJuego.height = altoCanvas;
+            canvasCombinado.width = anchoCanvas;
+            canvasCombinado.height = altoCanvas;
 
-            let videoElement = document.getElementById('webcamVideo');
-            videoElement.style.width = canvasWidth + 'px';
-            videoElement.style.height = canvasHeight + 'px';
+            let elementoVideo = document.getElementById('webcamVideo');
+            elementoVideo.style.width = anchoCanvas + 'px';
+            elementoVideo.style.height = altoCanvas + 'px';
 
-            bird = new Bird();
+            pajaro = new Pajaro();
         }
 
         function draw() {
-            gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+            contextoJuego.clearRect(0, 0, canvasJuego.width, canvasJuego.height);
 
-            if (gameStarted && !gameOver) {
-                let vol = mic.getLevel();
-                let currentTime = millis();
-                let cooldownRemaining = Math.max(0, COOLDOWN_TIME - (currentTime - lastFlapTime));
+            if (juegoIniciado && !finJuego) {
+                let volumen = microfono.getLevel();
+                let tiempoActual = millis();
+                let enfriamientoRestante = Math.max(0, TIEMPO_ENFRIAMIENTO - (tiempoActual - tiempoUltimoAleteo));
 
-                updateDebugInfo('音量: ' + vol.toFixed(4) + ', 阈值: ' + VOLUME_THRESHOLD + ', 冷却: ' + cooldownRemaining.toFixed(0) + 'ms');
+                actualizarInfoDepuracion('Volumen: ' + volumen.toFixed(4) + ', Umbral: ' + UMBRAL_VOLUMEN + ', Enfriamiento: ' + enfriamientoRestante.toFixed(0) + 'ms');
 
-                if (vol > VOLUME_THRESHOLD && currentTime - lastFlapTime > COOLDOWN_TIME) {
-                    bird.flap();
-                    lastFlapTime = currentTime;
-                    updateDebugInfo('音量: ' + vol.toFixed(4) + ', 上升力: ' + FIXED_LIFT);
+                if (volumen > UMBRAL_VOLUMEN && tiempoActual - tiempoUltimoAleteo > TIEMPO_ENFRIAMIENTO) {
+                    pajaro.aletear();
+                    tiempoUltimoAleteo = tiempoActual;
+                    actualizarInfoDepuracion('Volumen: ' + volumen.toFixed(4) + ', Elevación: ' + ELEVACION_FIJA);
                 }
 
-                bird.update();
-                bird.show();
+                pajaro.actualizar();
+                pajaro.mostrar();
 
-                if (frameCount % PIPE_SPAWN_INTERVAL == 0) {
-                    pipes.push(new Pipe());
+                if (frameCount % INTERVALO_GENERACION_TUBERIA == 0) {
+                    tuberias.push(new Tuberia());
                 }
 
-                for (let i = pipes.length - 1; i >= 0; i--) {
-                    pipes[i].show();
-                    pipes[i].update();
+                for (let i = tuberias.length - 1; i >= 0; i--) {
+                    tuberias[i].mostrar();
+                    tuberias[i].actualizar();
 
-                    if (pipes[i].hits(bird)) {
-                        gameOver = true;
+                    if (tuberias[i].golpea(pajaro)) {
+                        finJuego = true;
                     }
 
-                    if (pipes[i].offscreen()) {
-                        pipes.splice(i, 1);
-                        score++;
+                    if (tuberias[i].fueraPantalla()) {
+                        tuberias.splice(i, 1);
+                        puntuacion++;
                     }
                 }
 
-                gameCtx.fillStyle = 'white';
-                gameCtx.font = '32px Arial';
-                gameCtx.textAlign = 'left';
-                gameCtx.fillText('分数: ' + score, 10, 40);
-            } else if (gameOver) {
-                gameCtx.fillStyle = 'white';
-                gameCtx.font = '32px Arial';
-                gameCtx.textAlign = 'center';
-                gameCtx.fillText('游戏结束!点击重新开始', gameCanvas.width/2, gameCanvas.height/2);
+                contextoJuego.fillStyle = 'white';
+                contextoJuego.font = '32px Arial';
+                contextoJuego.textAlign = 'left';
+                contextoJuego.fillText('Puntuación: ' + puntuacion, 10, 40);
+            } else if (finJuego) {
+                contextoJuego.fillStyle = 'white';
+                contextoJuego.font = '32px Arial';
+                contextoJuego.textAlign = 'center';
+                contextoJuego.fillText('¡Fin del juego! Haz clic para reiniciar', canvasJuego.width/2, canvasJuego.height/2);
                 noLoop();
-                recorder.stop();
+                grabador.stop();
             } else {
-                gameCtx.fillStyle = 'white';
-                gameCtx.font = '32px Arial';
-                gameCtx.textAlign = 'center';
-                gameCtx.fillText('准备开始', gameCanvas.width/2, gameCanvas.height/2 - 50);
+                contextoJuego.fillStyle = 'white';
+                contextoJuego.font = '32px Arial';
+                contextoJuego.textAlign = 'center';
+                contextoJuego.fillText('Listo para comenzar', canvasJuego.width/2, canvasJuego.height/2 - 50);
             }
 
-            mergeFrames();
+            combinarFrames();
         }
 
-        function Bird() {
-            this.y = gameCanvas.height / 2;
-            this.x = gameCanvas.width / 2;
-            this.gravity = 0.1;
-            this.velocity = 0;
-            this.size = 32;
+        function Pajaro() {
+            this.y = canvasJuego.height / 2;
+            this.x = canvasJuego.width / 2;
+            this.gravedad = 0.1;
+            this.velocidad = 0;
+            this.tamaño = 32;
 
-            this.show = function() {
-                gameCtx.save();
-                gameCtx.translate(this.x, this.y);
-                gameCtx.rotate(this.velocity * 0.1);
+            this.mostrar = function() {
+                contextoJuego.save();
+                contextoJuego.translate(this.x, this.y);
+                contextoJuego.rotate(this.velocidad * 0.1);
 
-                // 身体
-                gameCtx.fillStyle = 'rgb(255, 255, 0)';
-                gameCtx.beginPath();
-                gameCtx.ellipse(0, 0, this.size/2, this.size*0.4, 0, 0, 2*Math.PI);
-                gameCtx.fill();
+                // Cuerpo
+                contextoJuego.fillStyle = 'rgb(255, 255, 0)';
+                contextoJuego.beginPath();
+                contextoJuego.ellipse(0, 0, this.tamaño/2, this.tamaño*0.4, 0, 0, 2*Math.PI);
+                contextoJuego.fill();
 
-                // 眼睛
-                gameCtx.fillStyle = 'white';
-                gameCtx.beginPath();
-                gameCtx.ellipse(this.size * 0.2, -this.size * 0.1, this.size * 0.1, this.size * 0.1, 0, 0, 2*Math.PI);
-                gameCtx.fill();
-                gameCtx.fillStyle = 'black';
-                gameCtx.beginPath();
-                gameCtx.ellipse(this.size * 0.2, -this.size * 0.1, this.size * 0.05, this.size * 0.05, 0, 0, 2*Math.PI);
-                gameCtx.fill();
+                // Ojo
+                contextoJuego.fillStyle = 'white';
+                contextoJuego.beginPath();
+                contextoJuego.ellipse(this.tamaño * 0.2, -this.tamaño * 0.1, this.tamaño * 0.1, this.tamaño * 0.1, 0, 0, 2*Math.PI);
+                contextoJuego.fill();
+                contextoJuego.fillStyle = 'black';
+                contextoJuego.beginPath();
+                contextoJuego.ellipse(this.tamaño * 0.2, -this.tamaño * 0.1, this.tamaño * 0.05, this.tamaño * 0.05, 0, 0, 2*Math.PI);
+                contextoJuego.fill();
 
-                // 嘴巴
-                gameCtx.fillStyle = 'rgb(255, 150, 0)';
-                gameCtx.beginPath();
-                gameCtx.moveTo(this.size * 0.3, 0);
-                gameCtx.lineTo(this.size * 0.5, -this.size * 0.1);
-                gameCtx.lineTo(this.size * 0.5, this.size * 0.1);
-                gameCtx.closePath();
-                gameCtx.fill();
+                // Pico
+                contextoJuego.fillStyle = 'rgb(255, 150, 0)';
+                contextoJuego.beginPath();
+                contextoJuego.moveTo(this.tamaño * 0.3, 0);
+                contextoJuego.lineTo(this.tamaño * 0.5, -this.tamaño * 0.1);
+                contextoJuego.lineTo(this.tamaño * 0.5, this.tamaño * 0.1);
+                contextoJuego.closePath();
+                contextoJuego.fill();
 
-                // 翅膀
-                gameCtx.fillStyle = 'rgb(255, 200, 0)';
-                gameCtx.beginPath();
-                gameCtx.ellipse(-this.size * 0.2, 0, this.size * 0.2, this.size * 0.1, 0, 0, 2*Math.PI);
-                gameCtx.fill();
+                // Ala
+                contextoJuego.fillStyle = 'rgb(255, 200, 0)';
+                contextoJuego.beginPath();
+                contextoJuego.ellipse(-this.tamaño * 0.2, 0, this.tamaño * 0.2, this.tamaño * 0.1, 0, 0, 2*Math.PI);
+                contextoJuego.fill();
 
-                gameCtx.restore();
+                contextoJuego.restore();
             }
 
-            this.update = function() {
-                this.velocity += this.gravity;
-                this.velocity = Math.min(Math.max(this.velocity, -MAX_FALL_SPEED), MAX_FALL_SPEED);
-                this.y += this.velocity;
+            this.actualizar = function() {
+                this.velocidad += this.gravedad;
+                this.velocidad = Math.min(Math.max(this.velocidad, -VELOCIDAD_CAIDA_MAXIMA), VELOCIDAD_CAIDA_MAXIMA);
+                this.y += this.velocidad;
 
-                if (this.y > gameCanvas.height - this.size/2) {
-                    this.y = gameCanvas.height - this.size/2;
-                    this.velocity = 0;
+                if (this.y > canvasJuego.height - this.tamaño/2) {
+                    this.y = canvasJuego.height - this.tamaño/2;
+                    this.velocidad = 0;
                 }
 
-                if (this.y < this.size/2) {
-                    this.y = this.size/2;
-                    this.velocity = 0;
+                if (this.y < this.tamaño/2) {
+                    this.y = this.tamaño/2;
+                    this.velocidad = 0;
                 }
             }
 
-            this.flap = function() {
-                this.velocity += FIXED_LIFT;
+            this.aletear = function() {
+                this.velocidad += ELEVACION_FIJA;
             }
         }
 
-        function Pipe() {
-            this.spacing = random(MIN_PIPE_SPACING, MAX_PIPE_SPACING);
-            this.top = random(gameCanvas.height * 0.1, gameCanvas.height * 0.6);
-            this.bottom = gameCanvas.height - (this.top + this.spacing);
-            this.x = gameCanvas.width;
+        function Tuberia() {
+            this.espacio = random(ESPACIO_MIN_TUBERIA, ESPACIO_MAX_TUBERIA);
+            this.superior = random(canvasJuego.height * 0.1, canvasJuego.height * 0.6);
+            this.inferior = canvasJuego.height - (this.superior + this.espacio);
+            this.x = canvasJuego.width;
             this.w = 80;
-            this.speed = 1.5;
+            this.velocidad = 1.5;
 
-            this.show = function() {
-                // 主体
-                gameCtx.fillStyle = 'rgb(0, 200, 0)';
-                gameCtx.fillRect(this.x, 0, this.w, this.top);
-                gameCtx.fillRect(this.x, gameCanvas.height - this.bottom, this.w, this.bottom);
+            this.mostrar = function() {
+                // Cuerpo principal
+                contextoJuego.fillStyle = 'rgb(0, 200, 0)';
+                contextoJuego.fillRect(this.x, 0, this.w, this.superior);
+                contextoJuego.fillRect(this.x, canvasJuego.height - this.inferior, this.w, this.inferior);
 
-                // 顶部装饰
-                gameCtx.fillStyle = 'rgb(0, 150, 0)';
-                gameCtx.fillRect(this.x - 5, this.top - 20, this.w + 10, 20);
-                gameCtx.fillRect(this.x - 5, gameCanvas.height - this.bottom, this.w + 10, 20);
+                // Decoración superior
+                contextoJuego.fillStyle = 'rgb(0, 150, 0)';
+                contextoJuego.fillRect(this.x - 5, this.superior - 20, this.w + 10, 20);
+                contextoJuego.fillRect(this.x - 5, canvasJuego.height - this.inferior, this.w + 10, 20);
 
-                // 高光效果
-                gameCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-                gameCtx.beginPath();
-                gameCtx.moveTo(this.x, 0);
-                gameCtx.lineTo(this.x, this.top);
-                gameCtx.stroke();
-                gameCtx.beginPath();
-                gameCtx.moveTo(this.x, gameCanvas.height - this.bottom);
-                gameCtx.lineTo(this.x, gameCanvas.height);
-                gameCtx.stroke();
+                // Efecto de iluminación
+                contextoJuego.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                contextoJuego.beginPath();
+                contextoJuego.moveTo(this.x, 0);
+                contextoJuego.lineTo(this.x, this.superior);
+                contextoJuego.stroke();
+                contextoJuego.beginPath();
+                contextoJuego.moveTo(this.x, canvasJuego.height - this.inferior);
+                contextoJuego.lineTo(this.x, canvasJuego.height);
+                contextoJuego.stroke();
             }
 
-            this.update = function() {
-                this.x -= this.speed;
+            this.actualizar = function() {
+                this.x -= this.velocidad;
             }
 
-            this.offscreen = function() {
+        this.fueraPantalla = function() {
                 return (this.x < -this.w);
             }
 
-            this.hits = function(bird) {
-                if (bird.y < this.top || bird.y > gameCanvas.height - this.bottom) {
-                    if (bird.x > this.x && bird.x < this.x + this.w) {
+            this.golpea = function(pajaro) {
+                if (pajaro.y < this.superior || pajaro.y > canvasJuego.height - this.inferior) {
+                    if (pajaro.x > this.x && pajaro.x < this.x + this.w) {
                         return true;
                     }
                 }
@@ -308,77 +308,77 @@
             }
         }
 
-        function mergeFrames() {
-            let videoElement = document.getElementById('webcamVideo');
-            mergedCtx.drawImage(videoElement, 0, 0, mergedCanvas.width, mergedCanvas.height);
-            mergedCtx.drawImage(gameCanvas, 0, 0);
+        function combinarFrames() {
+            let elementoVideo = document.getElementById('webcamVideo');
+            contextoCombiando.drawImage(elementoVideo, 0, 0, canvasCombinado.width, canvasCombinado.height);
+            contextoCombiando.drawImage(canvasJuego, 0, 0);
         }
 
-        function startGame() {
-            gameStarted = true;
+        function iniciarJuego() {
+            juegoIniciado = true;
             document.getElementById('startButton').style.display = 'none';
-            pipes = [];
-            score = 0;
-            bird = new Bird();
-            lastFlapTime = 0;
-            recorder.start();
+            tuberias = [];
+            puntuacion = 0;
+            pajaro = new Pajaro();
+            tiempoUltimoAleteo = 0;
+            grabador.start();
             getAudioContext().resume().then(() => {
-                console.log('音频上下文已恢复');
-                updateDebugInfo('音频上下文已恢复');
+                console.log('Contexto de audio reanudado');
+                actualizarInfoDepuracion('Contexto de audio reanudado');
             });
             loop();
         }
 
-        function updateDebugInfo(info) {
-            debugElement.textContent = info;
+        function actualizarInfoDepuracion(info) {
+            elementoDepuracion.textContent = info;
         }
 
         function mousePressed() {
-            if (gameOver) {
-                gameOver = false;
-                gameStarted = false;
-                bird = new Bird();
-                pipes = [];
-                score = 0;
-                lastFlapTime = 0;
+            if (finJuego) {
+                finJuego = false;
+                juegoIniciado = false;
+                pajaro = new Pajaro();
+                tuberias = [];
+                puntuacion = 0;
+                tiempoUltimoAleteo = 0;
                 document.getElementById('startButton').style.display = 'block';
                 loop();
-                chunks = [];
+                fragmentos = [];
             }
         }
 
-        function saveVideo() {
-            const blob = new Blob(chunks, { type: 'video/webm' });
+        function guardarVideo() {
+            const blob = new Blob(fragmentos, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             document.body.appendChild(a);
             a.style = 'display: none';
             a.href = url;
-            a.download = 'game-recording.webm';
+            a.download = 'grabacion-juego.webm';
             a.click();
             window.URL.revokeObjectURL(url);
         }
 
         function windowResized() {
-            resizeCanvases();
+            redimensionarCanvases();
         }
 
-        // 添加事件监听器以处理窗口大小变化
+        // Agregar evento para manejar cambios de tamaño de ventana
         window.addEventListener('resize', windowResized);
 
-        // 初始化 p5.js
+        // Inicializar p5.js
         new p5();
 
-        // 开始游戏循环
-        function gameLoop() {
-            requestAnimationFrame(gameLoop);
+        // Iniciar bucle del juego
+        function buclePrincipal() {
+            requestAnimationFrame(buclePrincipal);
             draw();
         }
 
-        // 在设置完成后启动游戏循环
+        // Iniciar bucle del juego después de que se complete la configuración
         document.addEventListener('DOMContentLoaded', function() {
             setup();
-            gameLoop();
+            buclePrincipal();
         });
     </script>
 </body>

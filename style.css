@@ -1,9 +1,9 @@
 :root {
-    --primary-color: #171a20;
-    --secondary-color: #3e6ae1;
-    --text-color: #ffffff;
-    --background-color: #000000;
-    --accent-color: #4eade0;
+    --primary-color: #ffffff;
+    --secondary-color: #4285F4;
+    --text-color: #333333;
+    --background-color: #f5f5f5;
+    --accent-color: #34A853;
     --section-padding: 80px 0;
 }
 
@@ -14,7 +14,7 @@
 }
 
 body {
-    font-family: 'Gotham SSm', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     line-height: 1.6;
     color: var(--text-color);
     background-color: var(--background-color);
@@ -27,9 +27,9 @@ body {
 }
 
 header {
-    background-color: rgba(23, 26, 32, 0.8);
+    background-color: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    color: white;
+    color: var(--text-color);
     padding: 20px 0;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
@@ -40,7 +40,7 @@ header {
     display: flex;
     align-items: center;
     text-align: center;
-    color: white;
+    color: var(--primary-color);
     position: relative;
 }
 
@@ -78,7 +78,7 @@ header {
     display: inline-block;
     padding: 15px 40px;
     background-color: var(--secondary-color);
-    color: white;
+    color: var(--primary-color);
     text-decoration: none;
     border-radius: 30px;
     font-size: 1.2rem;
@@ -90,7 +90,7 @@ header {
 }
 
 .cta-button:hover {
-    background-color: #2d59c3;
+    background-color: #3367D6;
     transform: translateY(-3px);
     box-shadow: 0 6px 8px rgba(0,0,0,0.15);
 }
@@ -115,17 +115,16 @@ section h2 {
 }
 
 .feature-item, .step-item, .mode-item, .testimonial {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--primary-color);
     padding: 30px;
     border-radius: 15px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    backdrop-filter: blur(5px);
 }
 
 .feature-item:hover, .step-item:hover, .mode-item:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(62, 106, 225, 0.3);
+    box-shadow: 0 6px 12px rgba(66, 133, 244, 0.3);
 }
 
 .feature-icon, .step-number {
@@ -139,7 +138,7 @@ section h2 {
     width: 60px;
     height: 60px;
     background-color: var(--secondary-color);
-    color: white;
+    color: var(--primary-color);
     border-radius: 50%;
     line-height: 60px;
     font-size: 1.5rem;
@@ -147,12 +146,12 @@ section h2 {
 }
 
 .about-sprunki, .sprunki-history {
-    background-color: #0a0a0a;
+    background-color: #f8f9fa;
 }
 
 .sprunki-history {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--text-color);
 }
 
 .tip-list {
@@ -178,7 +177,7 @@ section h2 {
 }
 
 .faq-item {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--primary-color);
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 20px;
@@ -202,7 +201,7 @@ section h2 {
 
 footer {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--text-color);
     text-align: center;
     padding: 40px 0;
 }
@@ -232,11 +231,11 @@ nav {
     justify-content: space-between;
     align-items: center;
     min-height: 3vh;
-    font-family: 'Gotham SSm', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .logo a {
-    color: white;
+    color: var(--text-color);
     text-decoration: none;
     letter-spacing: 3px;
     font-size: 20px;
@@ -254,7 +253,7 @@ nav {
 }
 
 .nav-links a {
-    color: white;
+    color: var(--text-color);
     text-decoration: none;
     letter-spacing: 2px;
     font-weight: 500;
@@ -264,7 +263,7 @@ nav {
 }
 
 .nav-links a:hover {
-    color: var(--accent-color);
+    color: var(--secondary-color);
 }
 
 .burger {
@@ -275,7 +274,7 @@ nav {
 .burger div {
     width: 25px;
     height: 3px;
-    background-color: white;
+    background-color: var(--text-color);
     margin: 5px;
     transition: all 0.3s ease;
 }
@@ -295,7 +294,7 @@ nav {
         right: 0px;
         height: 92vh;
         top: 8vh;
-        background-color: rgba(23, 26, 32, 0.95);
+        background-color: rgba(255, 255, 255, 0.95);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -364,7 +363,7 @@ nav {
 }
 
 .language-selector ul li a {
-    color: white;
+    color: var(--text-color);
     text-decoration: none;
     padding: 5px 10px;
     border: 1px solid var(--accent-color);
@@ -393,7 +392,7 @@ nav {
 
 .play-online {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--text-color);
     padding: 50px 0;
     text-align: center;
 }
@@ -411,11 +410,11 @@ nav {
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 1px;
-    box-shadow: 0 4px 6px rgba(78, 173, 224, 0.3);
+    box-shadow: 0 4px 6px rgba(52, 168, 83, 0.3);
 }
 
 .play-button:hover {
-    background-color: #3d8cbf;
+    background-color: #2E7D32;
     transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(78, 173, 224, 0.5);
+    box-shadow: 0 6px 12px rgba(52, 168, 83, 0.5);
 }

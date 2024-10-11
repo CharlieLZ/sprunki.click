@@ -1,92 +1,82 @@
-# [Sprunki Incredibox](https://sprunkiincredibox.com/) Game
+# [Sprunki Incredibox](https://sprunki.click/) Spiel
+Willkommen im offiziellen Repository für [sprunki.click](https://sprunki.click/), der Landingpage für die Sprunki-Mod des beliebten Musikerstellungsspiels Incredibox.
 
-Welcome to the official repository for [SprunkiIncredibox.com](https://sprunkiincredibox.com/), the landing page for the Sprunki mod of the popular Incredibox music creation game.
+## Inhaltsverzeichnis
+- [Über](#über)
+- [Funktionen](#funktionen)
+- [Erste Schritte](#erste-schritte)
+- [Entwicklung](#entwicklung)
+- [Bereitstellung](#bereitstellung)
+- [Mitwirken](#mitwirken)
+- [Lizenz](#lizenz)
 
-## Table of Contents
+## Über
+[Sprunki Incredibox](https://sprunki.click/) ist eine innovative Abwandlung der beliebten Incredibox-Musikerstellungsplattform. Diese Website dient als Haupt-Landingpage und Informationszentrum für Sprunki Incredibox und präsentiert seine einzigartigen Funktionen, das Gameplay und die Community.
 
-- [About](#about)
-- [Features](#features)
-- [Getting Started](#getting-started)
-- [Development](#development)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-- [License](#license)
+## Funktionen
+- Responsives Design für optimale Darstellung auf allen Geräten
+- Interaktive Abschnitte, die die Hauptfunktionen von Sprunki Incredibox hervorheben
+- Eingebettete Spieldemo
+- Testimonials der Community
+- Umfassender FAQ-Bereich
 
-## About
+## Erste Schritte
+Um eine lokale Kopie zum Laufen zu bringen, folgen Sie diesen einfachen Schritten:
 
-[Sprunki Incredibox](https://sprunkiincredibox.com/) is an innovative spin-off of the popular Incredibox music creation platform. This website serves as the main landing page and information hub for Sprunki Incredibox, showcasing its unique features, gameplay, and community.
-
-## Features
-
-- Responsive design for optimal viewing on all devices
-- Interactive sections highlighting Sprunki Incredibox's key features
-- Embedded game demo
-- Community testimonials
-- Comprehensive FAQ section
-
-## Getting Started
-
-To get a local copy up and running, follow these simple steps:
-
-1. Clone the repository:
+1. Klonen Sie das Repository:
    ```
    git clone https://github.com/qiayue/SprunkiIncredibox.git
    ```
-2. Navigate to the project directory:
+2. Navigieren Sie zum Projektverzeichnis:
    ```
    cd sprunkiincredibox
    ```
-3. Open `index.html` in your preferred web browser.
+3. Öffnen Sie `index.html` in Ihrem bevorzugten Webbrowser.
 
-## Development
+## Entwicklung
+Diese Website wurde mit reinem HTML, CSS und JavaScript erstellt, um eine einfache Wartung und schnelle Ladezeiten zu gewährleisten. Um Änderungen vorzunehmen:
 
-This website is built using pure HTML, CSS, and JavaScript for easy maintenance and quick loading times. To make changes:
+1. Bearbeiten Sie das HTML in `index.html`
+2. Modifizieren Sie Stile im `<style>`-Tag oder erstellen Sie eine separate CSS-Datei
+3. Fügen Sie zusätzliches JavaScript am Ende der `index.html`-Datei oder in einer separaten JS-Datei hinzu
 
-1. Edit the HTML in `index.html`
-2. Modify styles in the `<style>` tag or create a separate CSS file
-3. Add any additional JavaScript at the bottom of the `index.html` file or in a separate JS file
-
-### File Structure
-
+### Dateistruktur
 ```
 sprunkiincredibox/
 │
 ├── index.html
 ├── img/
 │   ├── home-header2.jpg
-│   └── ... (other images)
+│   └── ... (andere Bilder)
 ├── site.webmanifest
 └── README.md
 ```
 
-## Deployment
+## Bereitstellung
+Diese Website ist so konzipiert, dass sie einfach auf Plattformen wie Vercel, Netlify oder GitHub Pages bereitgestellt werden kann. Zur Bereitstellung:
 
-This website is designed to be easily deployed on platforms like Vercel, Netlify, or GitHub Pages. To deploy:
+1. Pushen Sie Ihre Änderungen in Ihr GitHub-Repository
+2. Verbinden Sie Ihr Repository mit Ihrer bevorzugten Hosting-Plattform
+3. Folgen Sie den Bereitstellungsanweisungen der Plattform
 
-1. Push your changes to your GitHub repository
-2. Connect your repository to your preferred hosting platform
-3. Follow the platform's deployment instructions
+Für Vercel:
+1. Importieren Sie Ihr GitHub-Repository auf Vercel
+2. Vercel erkennt automatisch die Einstellungen und stellt Ihre Seite bereit
 
-For Vercel:
-1. Import your GitHub repository on Vercel
-2. Vercel will automatically detect the settings and deploy your site
+## Mitwirken
+Wir begrüßen Beiträge zur Verbesserung von sprunki.click! Wenn Sie Vorschläge oder Verbesserungen haben:
 
-## Contributing
+1. Forken Sie das Repository
+2. Erstellen Sie einen neuen Branch (`git checkout -b feature/TollesFunktion`)
+3. Committen Sie Ihre Änderungen (`git commit -m 'Füge tolle Funktion hinzu'`)
+4. Pushen Sie den Branch (`git push origin feature/TollesFunktion`)
+5. Eröffnen Sie einen Pull Request
 
-We welcome contributions to improve SprunkiIncredibox.com! If you have suggestions or improvements:
-
-1. Fork the repository
-2. Create a new branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Lizenz
+Dieses Projekt ist unter der MIT-Lizenz lizenziert - siehe die [LICENSE](LICENSE)-Datei für Details.
 
 ---
 
-For any questions or support, please open an issue in this repository or contact us through our website.
+Für Fragen oder Support öffnen Sie bitte ein Issue in diesem Repository oder kontaktieren Sie uns über unsere Website.
 
-Enjoy creating sprunky beats with Sprunki Incredibox!
+Viel Spaß beim Erstellen sprunkiger Beats mit Sprunki Incredibox!
